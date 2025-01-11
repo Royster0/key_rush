@@ -7,33 +7,41 @@ import { RefreshCw } from "lucide-react";
 import { ModeToggle } from "@/components/ui/mode-toggle";
 
 const WORD_POOL = [
-  "apple", "animal", "answer", "baby", "ball", "bank", "beach", "bed", "bird", "book",
-  "bottle", "box", "brother", "building", "bus", "car", "cat", "chair", "child", "city",
-  "class", "clock", "clothes", "cloud", "coffee", "color", "computer", "corner", "country", "day",
-  "desk", "dog", "door", "dream", "dress", "earth", "education", "egg", "engine", "evening",
-  "example", "family", "farm", "father", "field", "fish", "floor", "flower", "food", "friend",
-  "game", "garden", "girl", "glass", "glove", "goal", "gold", "grass", "group", "hand",
-  "hat", "head", "health", "heart", "hill", "home", "horse", "hour", "house", "idea",
-  "island", "job", "key", "kitchen", "knife", "lamp", "language", "law", "letter", "library",
-  "light", "lion", "love", "machine", "magazine", "man", "map", "market", "meal", "money",
-  "month", "morning", "mother", "mountain", "movie", "music", "name", "night", "number", "ocean",
-  "office", "orange", "order", "page", "painting", "paper", "park", "party", "pen", "person",
-  "phone", "picture", "place", "plant", "plate", "point", "problem", "rain", "river", "road",
-  "room", "school", "science", "sea", "season", "seat", "sheep", "ship", "shoe", "shop",
-  "side", "sign", "silver", "sister", "sky", "smile", "song", "space", "sport", "spring",
-  "star", "stone", "story", "street", "summer", "sun", "table", "teacher", "team", "thing",
-  "ticket", "time", "town", "train", "tree", "umbrella", "vacation", "village", "water", "week",
-  "window", "winter", "woman", "world", "year", "zebra",
-  "academy", "actor", "air", "airport", "alcohol", "alley", "ambition", "angel", "animal", "apparel",
-  "applause", "arena", "art", "assistance", "audience", "authority", "baby", "balance", "bar",
-  "bargain", "baseball", "bat", "beach", "bear", "beauty", "belly", "bicycle", "bird", "bottle",
-  "box", "bread", "bridge", "brother", "brush", "camera", "candle", "capital", "car", "carpet",
-  "castle", "category", "celebration", "chamber", "champion", "channel", "charm", "check", "cheese",
-  "chicken", "child", "church", "city", "classroom", "clothes", "cloud", "coach", "cold", "college",
-  "connection", "container", "country", "court", "cup", "customer", "danger", "debt", "department",
-  "diamond", "diet", "direction", "district", "door", "downtown", "drama", "dust", "edition", "education",
-  "egg", "elbow", "empire", "energy", "event", "exam", "exercise", "experience", "family", "fame"
-];
+  "apple", "table", "chair", "glass", "stone", "phone", "brick", "brush", "smile", "happy",
+  "water", "cloud", "light", "night", "music", "sound", "earth", "flower", "green", "green",
+  "dream", "jump", "fast", "slow", "star", "moon", "book", "desk", "pen", "pencil",
+  "read", "write", "talk", "walk", "run", "fall", "stop", "time", "place", "learn",
+  "sleep", "wake", "dance", "game", "card", "coin", "key", "lock", "gold", "ring",
+  "blue", "red", "pink", "green", "yellow", "brown", "black", "white", "orange", "gray",
+  "love", "kind", "good", "happy", "sad", "funny", "cool", "smart", "kind", "brave",
+  "strong", "hard", "soft", "rich", "poor", "warm", "cold", "chill", "bright", "shiny",
+  "calm", "wild", "crazy", "angry", "fun", "snow", "rain", "wind", "fire", "storm",
+  "river", "lake", "sea", "ocean", "mount", "hill", "valley", "forest", "desert", "island",
+  "plane", "train", "car", "bus", "bike", "ship", "boat", "truck", "scooter", "horse",
+  "cat", "dog", "bird", "fish", "lion", "tiger", "bear", "wolf", "deer", "fox",
+  "cow", "sheep", "goat", "chicken", "duck", "elephant", "giraffe", "zebra", "camel", "monkey",
+  "apple", "peach", "melon", "grape", "lemon", "plum", "pear", "kiwi", "date", "fig",
+  "carrot", "potato", "onion", "beans", "corn", "spinach", "lettuce", "tomato", "chili", "cabbage",
+  "salt", "sugar", "pepper", "olive", "bacon", "bread", "cheese", "butter", "milk", "egg",
+  "meat", "fish", "chicken", "beef", "pork", "bake", "boil", "fry", "grill", "steam",
+  "sweet", "bitter", "sour", "salty", "spicy", "tasty", "fresh", "roast", "mash", "cook",
+  "eat", "drink", "serve", "plate", "knife", "fork", "spoon", "cup", "mug", "glass",
+  "salt", "pepper", "knife", "fork", "bowl", "plate", "spoon", "cup", "fork", "spoon",
+  "sauce", "beet", "fruit", "meat", "lunch", "dinner", "break", "lemon", "fruit", "berry",
+  "bake", "fry", "steam", "grill", "roast", "boil", "roast", "stew", "broil", "poach",
+  "clean", "wash", "dry", "fold", "iron", "sweep", "mop", "dust", "vacuum", "scrub",
+  "paint", "color", "draw", "sketch", "shade", "sculpt", "glue", "cut", "sew", "craft",
+  "work", "study", "read", "write", "plan", "think", "talk", "learn", "teach", "listen",
+  "speak", "argue", "debate", "discuss", "gather", "meet", "join", "share", "give", "help",
+  "love", "care", "hug", "kiss", "hold", "talk", "call", "chat", "email", "text",
+  "listen", "hear", "see", "watch", "feel", "smell", "touch", "move", "stand", "sit",
+  "stand", "walk", "run", "jump", "play", "work", "rest", "stop", "start", "finish",
+  "go", "stay", "return", "leave", "enter", "exit", "buy", "sell", "pay", "save",
+  "spend", "share", "keep", "lend", "borrow", "find", "lose", "search", "look", "seek",
+  "fix", "build", "create", "make", "build", "plant", "grow", "cut", "dig", "harvest",
+  "clean", "wash", "cook", "bake", "grill", "serve", "taste", "smell", "look", "watch"
+]
+
 
 const TIME_OPTIONS = [5, 15, 30, 60, 120];
 
@@ -42,7 +50,7 @@ export default function Home() {
   const [timeLeft, setTimeLeft] = useState(selectedTime);
   const [text, setText] = useState("");
   const [typed, setTyped] = useState("");
-  const [startTime, setStartTime] = useState(null);
+  const [startTime, setStartTime] = useState<number | null>(null);
   const [wpm, setWpm] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [mistakes, setMistakes] = useState(new Set());
