@@ -150,7 +150,7 @@ export default function Home() {
 
   // Updates
   useEffect(() => {
-    const handleKeyDown = (e: { key: string | any[]; preventDefault: () => void; }) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       // Restart using tab key
       if (e.key === "Tab") {
         e.preventDefault();
@@ -347,7 +347,7 @@ export default function Home() {
             >
               {isFinished ? (
                 <div className="text-center">
-                  <h2 className="text-2xl font-bold mb-2">Time's up!</h2>
+                  <h2 className="text-2xl font-bold mb-2">Time`&apos;`s up!</h2>
                   <p className="text-xl">Final Speed: {wpm} WPM</p>
                   <p className="text-lg mt-2">Press ESC or click Restart to try again</p>
                 </div>
