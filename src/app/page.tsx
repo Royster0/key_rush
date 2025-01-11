@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
-
+import { ModeToggle } from "@/components/ui/mode-toggle";
 
 const WORD_POOL = [
   "apple", "animal", "answer", "baby", "ball", "bank", "beach", "bed", "bird", "book",
@@ -271,7 +271,7 @@ export default function Home() {
                   ${isTyped && !isCorrect ? 'text-red-600' : ''}
                   ${isTyped && isCorrect ? 'text-emerald-500' : ''}
                   ${isMistake ? 'text-red-500' : ''}
-                  ${!isTyped ? 'text-gray-800' : ''}
+                  ${!isTyped ? 'text-gray-800 dark:text-gray-400' : ''}
                   text-2xl
                 `}
               >
@@ -285,68 +285,73 @@ export default function Home() {
   };
 
   return (
-    <Card className="w-full max-w-4xl shadow-none border-none">
-      <CardHeader>
-        <CardTitle className="flex justify-between items-center px-6 py-4 shadow-md rounded-md">
-          <div className="flex items-center gap-4 ">
-            <span>Typing Test</span>
-            <div className="flex gap-2">
-              {TIME_OPTIONS.map(time => (
-                <Button
-                  key={time}
-                  variant={time === selectedTime ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => {
-                    setSelectedTime(time);
-                    restart();
-                  }}
-                  disabled={isActive}
-                >
-                  {time}s
-                </Button>
-              ))}
+    <div className="min-h-screen w-full flex items-center justify-center">
+      <Card className="w-full max-w-4xl shadow-none border-none">
+        <CardHeader>
+          <CardTitle className="flex justify-between items-center px-6 py-4 shadow-md rounded-md">
+            <div className="flex items-center gap-4 ">
+              <span>Key Rush</span>
+              <div className="flex gap-2">
+                {TIME_OPTIONS.map(time => (
+                  <Button
+                    key={time}
+                    variant={time === selectedTime ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => {
+                      setSelectedTime(time);
+                      restart();
+                    }}
+                    disabled={isActive}
+                  >
+                    {time}s
+                  </Button>
+                ))}
+              </div>
+              <Button
+                ref={restartRef}
+                variant="outline"
+                size="sm"
+                onClick={restart}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Restart
+              </Button>
             </div>
-            <Button 
-              ref={restartRef}
-              variant="outline" 
-              size="sm" 
-              onClick={restart}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Restart
-            </Button>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-xl font-bold">{timeLeft}s</span>
-            <span className="text-2xl font-bold">{wpm} WPM</span>
-          </div>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div 
-          ref={containerRef}
-          className="p-6 rounded-lg mb-4 font-mono leading-relaxed  overflow-hidden"
-        >
-          <div 
-            ref={textRef}
-            tabIndex={0}
-            className="h-[7.5em] focus:outline-none"
+            <div>
+              <ModeToggle />
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="text-xl font-bold">{timeLeft}s</span>
+              <span className="text-2xl font-bold">{wpm} WPM</span>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div
+            ref={containerRef}
+            className="p-6 rounded-lg mb-4 font-mono leading-relaxed  overflow-hidden"
           >
-            {isFinished ? (
-              <div className="text-center">
-                <h2 className="text-2xl font-bold mb-2">Time's up!</h2>
-                <p className="text-xl">Final Speed: {wpm} WPM</p>
-                <p className="text-lg mt-2">Press ESC or click Restart to try again</p>
-              </div>
-            ) : (
-              <div className="transition-all duration-150">
-                {renderText()}
-              </div>
-            )}
+            <div
+              ref={textRef}
+              tabIndex={0}
+              className="h-[7.5em] focus:outline-none"
+            >
+              {isFinished ? (
+                <div className="text-center">
+                  <h2 className="text-2xl font-bold mb-2">Time's up!</h2>
+                  <p className="text-xl">Final Speed: {wpm} WPM</p>
+                  <p className="text-lg mt-2">Press ESC or click Restart to try again</p>
+                </div>
+              ) : (
+                <div className="transition-all duration-150">
+                  {renderText()}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
