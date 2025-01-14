@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { ModeToggle } from "@/components/ui/mode-toggle";
 import { motion, AnimatePresence } from "framer-motion";
+import { start } from "repl";
 
 const WORD_POOL = [
   "apple", "table", "chair", "glass", "stone", "phone", "brick", "brush", "smile", "happy",
@@ -63,6 +64,10 @@ export default function Home() {
   const [typed, setTyped] = useState("");
   const [startTime, setStartTime] = useState<number | null>(null);
   const [wpm, setWpm] = useState<number>(0);
+  const [rawWpm, setRawWpm] = useState<number>(0);
+  const [accuracy, setAccuracy] = useState<number>(100);
+  const [totalKeystrokes, setTotalKeystrokes] = useState<number>(0);
+  const [correctKeystrokes, setCorrectKeystrokes] = useState<number>(0);
   const [isActive, setIsActive] = useState(false);
   const [mistakes, setMistakes] = useState(new Set());
   const [isFinished, setIsFinished] = useState(false);
@@ -135,6 +140,26 @@ export default function Home() {
     return Math.round(wordsTyped / elapsedTime);
   }, [startTime, typed]);
 
+  const calculateStats = useCallback(() => {
+    if (!startTime) return { wpm: 0, rawWpm: 0, accuracy: 100 };
+
+    const currentTime = Date.now();
+    const elapsedTime = (currentTime - startTime) / 1000 / 60;
+
+    // calculate raw wpm
+    const rawTyped = totalKeystrokes / 5;
+    const calculatedRaw = Math.round(rawTyped / elapsedTime);
+
+    // calculate accuracy
+    const calculatedAcc = totalKeystrokes > 0 ? Math.round((correctKeystrokes / totalKeystrokes) * 100) : 100;
+
+    // calculate actual wpm
+    const correctWordsTyped = correctKeystrokes / 5;
+    const calculatedWpm = Math.round(correctWordsTyped / elapsedTime);
+
+    return { wpm: calculatedWpm, rawWpm: calculatedRaw, accuracy: calculatedAcc };
+  }, [startTime, totalKeystrokes, correctKeystrokes]);
+
   const restart = useCallback(() => {
     const newText = generateText();
     setText(newText);
@@ -142,6 +167,10 @@ export default function Home() {
     setTyped("");
     setStartTime(null);
     setWpm(0);
+    setRawWpm(0);
+    setAccuracy(100);
+    setTotalKeystrokes(0);
+    setCorrectKeystrokes(0);
     setIsActive(false);
     setMistakes(new Set());
     setTimeLeft(selectedTime);
@@ -183,17 +212,27 @@ export default function Home() {
 
       // Mistake
       if (e.key === "Backspace") {
-        setTyped((prev) => prev.slice(0, -1));
-        const newMistakes = new Set(mistakes);
-        newMistakes.delete(typed.length - 1);
-        setMistakes(newMistakes);
-        
+        if (typed.length > 0) {
+          const lastIndex = typed.length - 1;
+          const wasCorrect = typed[lastIndex] === text[lastIndex];
+          setTotalKeystrokes((prev) => Math.max(0, prev - 1));
+          if (wasCorrect) {
+            setCorrectKeystrokes((prev) => Math.max(0, prev - 1));
+          }
+          setTyped((prev) => prev.slice(0, -1));
+          const newMistakes = new Set(mistakes);
+          newMistakes.delete(lastIndex);
+          setMistakes(newMistakes);
+        }
         return;
       }
 
       if (e.key === " " && typed.length > 0 && typed[typed.length - 1] !== " ") {
         setTyped((prev) => prev + " ");
-        
+        setTotalKeystrokes((prev) => prev + 1);
+        if (text[typed.length] === " ") {
+          setCorrectKeystrokes((prev) => prev + 1);
+        }
         return;
       }
 
@@ -201,8 +240,11 @@ export default function Home() {
         const currentIndex = typed.length;
         if (currentIndex < text.length) {
           const isCorrect = e.key === text[currentIndex];
+          setTotalKeystrokes((prev) => prev + 1);
           
-          if (!isCorrect) {
+          if (isCorrect) {
+            setCorrectKeystrokes((prev) => prev + 1);
+          } else {
             const newMistakes = new Set(mistakes);
             newMistakes.add(currentIndex);
             setMistakes(newMistakes);
@@ -217,6 +259,7 @@ export default function Home() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [typed, mistakes, text, restart, isFinished]);
 
+  // Start only when first keystroke is made
   useEffect(() => {
     if (typed.length === 1) {
       setStartTime(Date.now());
@@ -248,7 +291,10 @@ export default function Home() {
   useEffect(() => {
     if (isActive) {
       const interval = setInterval(() => {
-        setWpm(calculateWPM());
+        const stats = calculateStats();
+        setWpm(stats.wpm);
+        setRawWpm(stats.rawWpm);
+        setAccuracy(stats.accuracy);
       }, 100);
 
       return () => clearInterval(interval);
@@ -367,8 +413,9 @@ export default function Home() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    <h2 className="text-xl font-bold mb-2">Time&apos;s up!</h2>
-                    <p className="text-2xl">Final Speed: <span className="font-bold">{wpm} WPM</span></p>
+                    <p className="text-2xl">Speed: <span className="font-bold">{wpm} wpm</span></p>
+                    <p className="text-2xl">Accuracy: <span className="font-bold">{accuracy}%</span></p>
+                    <p className="text-xl">Raw Speed: {rawWpm} wpm</p>
                     <p className="text-lg mt-2">Press Tab or click Restart to try again</p>
                   </motion.div>
                 ) : (
