@@ -63,8 +63,6 @@ export default function Home() {
   const [typed, setTyped] = useState("");
   const [startTime, setStartTime] = useState<number | null>(null);
   const [wpm, setWpm] = useState<number>(0);
-  const [rawWpm, setRawWpm] = useState<number>(0);
-  const [accuracy, setAccuracy] = useState<number>(100);
   const [isActive, setIsActive] = useState(false);
   const [mistakes, setMistakes] = useState(new Set());
   const [isFinished, setIsFinished] = useState(false);
