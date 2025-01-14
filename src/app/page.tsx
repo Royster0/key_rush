@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { ModeToggle } from "@/components/ui/mode-toggle";
 import { motion, AnimatePresence } from "framer-motion";
-import { start } from "repl";
 
 const WORD_POOL = [
   "apple", "table", "chair", "glass", "stone", "phone", "brick", "brush", "smile", "happy",
