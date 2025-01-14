@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { ModeToggle } from "@/components/ui/mode-toggle";
+import { motion, AnimatePresence } from "framer-motion";
 
 const WORD_POOL = [
   "apple", "table", "chair", "glass", "stone", "phone", "brick", "brush", "smile", "happy",
@@ -42,8 +43,18 @@ const WORD_POOL = [
   "clean", "wash", "cook", "bake", "grill", "serve", "taste", "smell", "look", "watch"
 ]
 
-
 const TIME_OPTIONS = [5, 15, 30, 60, 120];
+
+const Caret = () => (
+  <motion.div 
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.15 }}
+    className="absolute top-0 w-0.5 bg-blue-500"
+    layoutId="caret"
+    style={{ height: "1.5em" }}
+  />
+);
 
 export default function Home() {
   const [selectedTime, setSelectedTime] = useState(30);
@@ -51,7 +62,9 @@ export default function Home() {
   const [text, setText] = useState("");
   const [typed, setTyped] = useState("");
   const [startTime, setStartTime] = useState<number | null>(null);
-  const [wpm, setWpm] = useState(0);
+  const [wpm, setWpm] = useState<number>(0);
+  const [rawWpm, setRawWpm] = useState<number>(0);
+  const [accuracy, setAccuracy] = useState<number>(100);
   const [isActive, setIsActive] = useState(false);
   const [mistakes, setMistakes] = useState(new Set());
   const [isFinished, setIsFinished] = useState(false);
@@ -261,32 +274,35 @@ export default function Home() {
 
     return displayLines.map((line, lineIndex) => {
       const chars = line.split('');
+      const lineStart = text.indexOf(line);
       
       return (
-        <div key={lineIndex} className="h-[2.5em] whitespace-pre">
+        <div key={lineIndex} className="h-[2.5em] whitespace-pre relative">
           {chars.map((char, charIndex) => {
-            const absoluteIndex = text.indexOf(line) + charIndex;
+            const absoluteIndex = lineStart + charIndex;
             const isCurrent = absoluteIndex === typed.length;
             const isTyped = absoluteIndex < typed.length;
             const isCorrect = typed[absoluteIndex] === char;
             const isMistake = mistakes.has(absoluteIndex);
 
             return (
-              <span
+              <motion.span
                 key={charIndex}
                 className={`
-                  ${isCurrent ? 'border-l-2 border-blue-500' : ''}
                   ${isTyped && !isCorrect ? 'text-red-600' : ''}
                   ${isTyped && isCorrect ? 'text-emerald-500' : ''}
                   ${isMistake ? 'text-red-500' : ''}
                   ${!isTyped ? 'text-gray-800 dark:text-gray-400' : ''}
-                  text-2xl
+                  text-2xl relative inline-block
                 `}
+                layout
               >
+                {isCurrent && <Caret />}
                 {char}
-              </span>
+              </motion.span>
             );
           })}
+
         </div>
       );
     });
@@ -345,17 +361,29 @@ export default function Home() {
               tabIndex={0}
               className="h-[7.5em] focus:outline-none"
             >
-              {isFinished ? (
-                <div className="text-center">
-                  <h2 className="text-2xl font-bold mb-2">Time`&apos;`s up!</h2>
-                  <p className="text-xl">Final Speed: {wpm} WPM</p>
-                  <p className="text-lg mt-2">Press ESC or click Restart to try again</p>
-                </div>
-              ) : (
-                <div className="transition-all duration-150">
-                  {renderText()}
-                </div>
-              )}
+              <AnimatePresence mode="wait">
+                {isFinished ? (
+                  <motion.div 
+                    className="text-center"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <h2 className="text-xl font-bold mb-2">Time&apos;s up!</h2>
+                    <p className="text-2xl">Final Speed: <span className="font-bold">{wpm} WPM</span></p>
+                    <p className="text-lg mt-2">Press Tab or click Restart to try again</p>
+                  </motion.div>
+                ) : (
+                  <motion.div 
+                    className="transition-all duration-150"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    {renderText()}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </CardContent>
