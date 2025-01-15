@@ -32,7 +32,6 @@ const Game = ({ user }: GameProps) => {
   const [mistakes, setMistakes] = useState(new Set());
   const [isFinished, setIsFinished] = useState(false);
   const [lines, setLines] = useState<string[]>([]);
-  const [resultsSaved, setResultsSaved] = useState(false);
 
   const textRef = useRef<HTMLDivElement>(null);
   const restartRef = useRef<HTMLButtonElement>(null);
@@ -60,7 +59,6 @@ const Game = ({ user }: GameProps) => {
     setMistakes(new Set());
     setTimeLeft(selectedTime);
     setIsFinished(false);
-    setResultsSaved(false);
 
     setTimeout(() => {
       if (textRef.current) {
@@ -201,10 +199,6 @@ const Game = ({ user }: GameProps) => {
           if (prev <= 1) {
             setIsFinished(true);
             setIsActive(false);
-            if (!resultsSaved) {
-              saveResult();
-              setResultsSaved(true);
-            }
 
             return 0;
           }
@@ -215,7 +209,11 @@ const Game = ({ user }: GameProps) => {
 
       return () => clearInterval(timer);
     }
-  }, [isActive, timeLeft, resultsSaved, saveResult]);
+  }, [isActive, timeLeft]);
+
+  useEffect(() => {
+    if (isFinished) saveResult();
+  }, [isFinished, saveResult]);
 
   // Dynamic WPM
   useEffect(() => {

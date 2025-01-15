@@ -8,7 +8,6 @@ const protectedRoutes = ["/profile"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  console.log("Middleware path:", pathname);
 
   if (
     pathname.startsWith("/_next") ||
@@ -19,7 +18,6 @@ export async function middleware(request: NextRequest) {
   }
 
   const token = request.cookies.get("auth-token");
-  console.log("Token exists:", !!token);
 
   if (protectedRoutes.some((route) => pathname.startsWith(route))) {
     if (!token) {
