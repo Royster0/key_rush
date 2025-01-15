@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String       @id @default(cuid())
+  name        String?
+  email       String       @unique
+  password    String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  testResults TestResult[]
+}
+
+model TestResult {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  wpm            Int
+  rawWpm         Int
+  accuracy       Float
+  testDuration   Int // in seconds
+  completedAt    DateTime @default(now())
+  mistakeCount   Int
+  characterCount Int
+  createdAt      DateTime @default(now())
+
+  @@index([userId, completedAt])
+  @@index([testDuration, wpm, completedAt])
+}
+
+// For caching aggregated leaderboard data
+model LeaderboardCache {
+  id        String   @id @default(cuid())
+  period    String // 'daily', 'weekly', 'allTime'
+  duration  Int // test duration in seconds
+  data      Json // cached leaderboard data
+  updatedAt DateTime @updatedAt
+
+  @@unique([period, duration])
+}

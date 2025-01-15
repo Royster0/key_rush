@@ -11,54 +11,101 @@ import { RefreshCw } from "lucide-react";
 import { ModeToggle } from "./ui/mode-toggle";
 import Stats from "./Stats";
 import { AnimatePresence, motion } from "framer-motion";
+import { User } from "@/lib/types";
 
-const Game = () => {
-    const [selectedTime, setSelectedTime] = useState(30);
-    const [timeLeft, setTimeLeft] = useState(selectedTime);
-    const [text, setText] = useState("");
-    const [typed, setTyped] = useState("");
-    const [startTime, setStartTime] = useState<number | null>(null);
-    const [wpm, setWpm] = useState<number>(0);
-    const [rawWpm, setRawWpm] = useState<number>(0);
-    const [accuracy, setAccuracy] = useState<number>(100);
-    const [totalKeystrokes, setTotalKeystrokes] = useState<number>(0);
-    const [correctKeystrokes, setCorrectKeystrokes] = useState<number>(0);
-    const [isActive, setIsActive] = useState(false);
-    const [mistakes, setMistakes] = useState(new Set());
-    const [isFinished, setIsFinished] = useState(false);
-    const [lines, setLines] = useState<string[]>([]);
+interface GameProps {
+  user: User | null;
+}
 
-    const textRef = useRef<HTMLDivElement>(null);
-    const restartRef = useRef<HTMLButtonElement>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
+const Game = ({ user }: GameProps) => {
+  const [selectedTime, setSelectedTime] = useState(30);
+  const [timeLeft, setTimeLeft] = useState(selectedTime);
+  const [text, setText] = useState("");
+  const [typed, setTyped] = useState("");
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [wpm, setWpm] = useState<number>(0);
+  const [rawWpm, setRawWpm] = useState<number>(0);
+  const [accuracy, setAccuracy] = useState<number>(100);
+  const [totalKeystrokes, setTotalKeystrokes] = useState<number>(0);
+  const [correctKeystrokes, setCorrectKeystrokes] = useState<number>(0);
+  const [isActive, setIsActive] = useState(false);
+  const [mistakes, setMistakes] = useState(new Set());
+  const [isFinished, setIsFinished] = useState(false);
+  const [lines, setLines] = useState<string[]>([]);
+  const [resultsSaved, setResultsSaved] = useState(false);
 
-    const measureText = useTextMeasurement(containerRef);
-    const calculateStats = useTypingStats(startTime, totalKeystrokes, correctKeystrokes);
+  const textRef = useRef<HTMLDivElement>(null);
+  const restartRef = useRef<HTMLButtonElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-    const restart = useCallback(() => {
-        const newText = generateText();
-        setText(newText);
-        setLines(measureText(newText));
-        setTyped("");
-        setStartTime(null);
-        setWpm(0);
-        setRawWpm(0);
-        setAccuracy(100);
-        setTotalKeystrokes(0);
-        setCorrectKeystrokes(0);
-        setIsActive(false);
-        setMistakes(new Set());
-        setTimeLeft(selectedTime);
-        setIsFinished(false);
-    
-        setTimeout(() => {
-          if (textRef.current) {
-            textRef.current.focus();
-          }
-        }, 0);
-    }, [selectedTime, measureText]);
+  const measureText = useTextMeasurement(containerRef);
+  const calculateStats = useTypingStats(
+    startTime,
+    totalKeystrokes,
+    correctKeystrokes
+  );
 
-    // Restart
+  const restart = useCallback(() => {
+    const newText = generateText();
+    setText(newText);
+    setLines(measureText(newText));
+    setTyped("");
+    setStartTime(null);
+    setWpm(0);
+    setRawWpm(0);
+    setAccuracy(100);
+    setTotalKeystrokes(0);
+    setCorrectKeystrokes(0);
+    setIsActive(false);
+    setMistakes(new Set());
+    setTimeLeft(selectedTime);
+    setIsFinished(false);
+    setResultsSaved(false);
+
+    setTimeout(() => {
+      if (textRef.current) {
+        textRef.current.focus();
+      }
+    }, 0);
+  }, [selectedTime, measureText]);
+
+  const saveResult = useCallback(async () => {
+    if (!user) {
+      console.log("Guest user");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/typing/results", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          wpm,
+          rawWpm,
+          accuracy,
+          testDuration: selectedTime,
+          mistakeCount: mistakes.size,
+          characterCount: totalKeystrokes,
+        }),
+      });
+
+      if (!response.ok) console.log("Failed to save results");
+    } catch (e) {
+      console.log("Error saving results: ", e);
+    }
+  }, [
+    user,
+    wpm,
+    rawWpm,
+    accuracy,
+    selectedTime,
+    mistakes.size,
+    totalKeystrokes,
+  ]);
+
+  // Restart
   useEffect(() => {
     restart();
   }, [restart]);
@@ -102,7 +149,11 @@ const Game = () => {
         return;
       }
 
-      if (e.key === " " && typed.length > 0 && typed[typed.length - 1] !== " ") {
+      if (
+        e.key === " " &&
+        typed.length > 0 &&
+        typed[typed.length - 1] !== " "
+      ) {
         setTyped((prev) => prev + " ");
         setTotalKeystrokes((prev) => prev + 1);
         if (text[typed.length] === " ") {
@@ -116,7 +167,7 @@ const Game = () => {
         if (currentIndex < text.length) {
           const isCorrect = e.key === text[currentIndex];
           setTotalKeystrokes((prev) => prev + 1);
-          
+
           if (isCorrect) {
             setCorrectKeystrokes((prev) => prev + 1);
           } else {
@@ -150,6 +201,10 @@ const Game = () => {
           if (prev <= 1) {
             setIsFinished(true);
             setIsActive(false);
+            if (!resultsSaved) {
+              saveResult();
+              setResultsSaved(true);
+            }
 
             return 0;
           }
@@ -160,7 +215,7 @@ const Game = () => {
 
       return () => clearInterval(timer);
     }
-  }, [isActive, timeLeft]);
+  }, [isActive, timeLeft, resultsSaved, saveResult]);
 
   // Dynamic WPM
   useEffect(() => {
@@ -178,11 +233,11 @@ const Game = () => {
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver(() => {
-        setLines(measureText(text));
+      setLines(measureText(text));
     });
 
     if (containerRef.current) {
-        resizeObserver.observe(containerRef.current);
+      resizeObserver.observe(containerRef.current);
     }
 
     return () => resizeObserver.disconnect();
@@ -190,7 +245,7 @@ const Game = () => {
 
   const renderText = () => {
     let typedSoFar = 0;
-    const currentLineIndex = lines.findIndex(line => {
+    const currentLineIndex = lines.findIndex((line) => {
       if (typedSoFar + line.length + 1 > typed.length) {
         return true;
       }
@@ -198,21 +253,23 @@ const Game = () => {
       return false;
     });
 
-    const displayLines = lines.slice(
-      Math.max(0, currentLineIndex - 1),
-      Math.max(3, currentLineIndex + 2)
-    ).slice(0, 3);
+    const displayLines = lines
+      .slice(
+        Math.max(0, currentLineIndex - 1),
+        Math.max(3, currentLineIndex + 2)
+      )
+      .slice(0, 3);
 
     return displayLines.map((line, lineIndex) => {
-      const chars = line.split('');
+      const chars = line.split("");
       const lineStart = text.indexOf(line);
-      
+
       return (
         <div key={lineIndex} className="h-[2.5em] whitespace-pre relative">
           {chars.map((char, charIndex) => {
             const absoluteIndex = lineStart + charIndex;
             return (
-              <Character 
+              <Character
                 key={charIndex}
                 char={char}
                 isCurrent={absoluteIndex === typed.length}
@@ -228,17 +285,16 @@ const Game = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center">
+    <div className="min-h-fill w-full flex items-center justify-center mt-[7em]">
       <Card className="w-full max-w-4xl shadow-none border-none">
         <CardHeader>
           <CardTitle className="flex justify-between items-center px-6 py-4 shadow-md rounded-md">
             <div className="flex items-center gap-4 ">
-              <span>Key Rush</span>
-              <TimeButtons 
+              <TimeButtons
                 selectedTime={selectedTime}
                 onTimeSelect={(time) => {
-                    setSelectedTime(time);
-                    restart();
+                  setSelectedTime(time);
+                  restart();
                 }}
                 isActive={isActive}
               />
@@ -254,17 +310,15 @@ const Game = () => {
               </Button>
             </div>
             <div>
-
-            <ModeToggle />
-
+              <ModeToggle />
             </div>
             <div>
-                <Stats 
-                    timeLeft={timeLeft}
-                    wpm={wpm}
-                    rawWpm={rawWpm}
-                    accuracy={accuracy}
-                />
+              <Stats
+                timeLeft={timeLeft}
+                wpm={wpm}
+                rawWpm={rawWpm}
+                accuracy={accuracy}
+              />
             </div>
           </CardTitle>
         </CardHeader>
@@ -280,19 +334,25 @@ const Game = () => {
             >
               <AnimatePresence mode="wait">
                 {isFinished ? (
-                  <motion.div 
+                  <motion.div
                     className="text-center"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    <p className="text-2xl">Speed: <span className="font-bold">{wpm} wpm</span></p>
-                    <p className="text-2xl">Accuracy: <span className="font-bold">{accuracy}%</span></p>
+                    <p className="text-2xl">
+                      Speed: <span className="font-bold">{wpm} wpm</span>
+                    </p>
+                    <p className="text-2xl">
+                      Accuracy: <span className="font-bold">{accuracy}%</span>
+                    </p>
                     <p className="text-xl">Raw Speed: {rawWpm} wpm</p>
-                    <p className="text-lg mt-2">Press Tab or click Restart to try again</p>
+                    <p className="text-lg mt-2">
+                      Press Tab or click Restart to try again
+                    </p>
                   </motion.div>
                 ) : (
-                  <motion.div 
+                  <motion.div
                     className="transition-all duration-150"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
