@@ -1,6 +1,6 @@
 # Key Rush
 
-Dynamic Typing Test that features timed tests, tracking of personal best, leaderboard, and profile to see history of completed tests.
+Dynamic Typing Test inspired by monkeytype that features timed tests, tracking of personal best, leaderboard, and profile to see history of completed tests.
 
 ## TODO
 
@@ -12,8 +12,7 @@ Dynamic Typing Test that features timed tests, tracking of personal best, leader
 
 ## Technologies
 
-- NextJS 15
+- NextJS
+- React
 - Tailwind CSS
 - Prisma Postgres
-- shadcn
-- Motion
